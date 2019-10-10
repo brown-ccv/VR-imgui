@@ -33,10 +33,13 @@ target_link_libraries(ImguiVR
   ${GLEW_SHARED_LIBRARIES}
   ${GLM_LIBRARIES}
 )
-install(FILES VRMenu.h VRMenuHandler.h imgui/imgui.h DESTINATION ${CMAKE_INSTALL_PREFIX}/include)
+install(FILES VRMenu.h VRMenuHandler.h  DESTINATION ${CMAKE_INSTALL_PREFIX}/include)
+install(FILES imgui/imgui.h imgui/imgui_internal.h imgui/imconfig.h imgui/imstb_textedit.h DESTINATION ${CMAKE_INSTALL_PREFIX}/include/imgui)
 install(TARGETS ImguiVR EXPORT ImguiVR DESTINATION ${CMAKE_INSTALL_PREFIX}/lib)
 install(EXPORT ImguiVR DESTINATION ${CMAKE_INSTALL_PREFIX}/)
-target_include_directories(ImguiVR INTERFACE $<INSTALL_INTERFACE:${CMAKE_INSTALL_PREFIX}/include>)
+target_include_directories(ImguiVR INTERFACE
+	$<INSTALL_INTERFACE:${CMAKE_INSTALL_PREFIX}/include> 
+	$<INSTALL_INTERFACE:${CMAKE_INSTALL_PREFIX}/include/imgui>)
 install(FILES ImguiVRConfig.cmake DESTINATION ${CMAKE_INSTALL_PREFIX}/)
 
 if(BUILD_WITH_EXAMPLE)

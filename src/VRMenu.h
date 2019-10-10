@@ -30,7 +30,7 @@
 #define VRMENU_H
 
 #include "imgui/imgui.h"
-#include "imgui_internal.h"
+#include "imgui/imgui_internal.h"
 #include <functional>
 #include <glm/gtc/matrix_transform.hpp>
 #include <chrono>
