@@ -1,7 +1,5 @@
 project(ImguiVR)
 
-list(APPEND CMAKE_PREFIX_PATH ../../build/install)
-
 # Using 3.9 to get a modern version of FindOpenGL.cmake
 cmake_minimum_required (VERSION 3.9) 
 
@@ -12,18 +10,28 @@ if (CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT OR "${CMAKE_INSTALL_PREFIX}" STR
 endif()
 
 list(APPEND CMAKE_MODULE_PATH  ${CMAKE_CURRENT_SOURCE_DIR}/cmake ${CMAKE_INSTALL_PREFIX})
-list(INSERT CMAKE_PREFIX_PATH 0 ${CMAKE_INSTALL_PREFIX})
 
-set(CMAKE_CXX_STANDARD 11)
-    if(COMMAND cmake_policy)
-      cmake_policy(SET CMP0003 NEW)
-    endif(COMMAND cmake_policy)
+option(BUILD_WITH_FILEBROWSER "If enabled, the imgui-filebrowser will be included. However it requires C++17. If disabled it will be excluded and only requires C++11." OFF)
+option(BUILD_WITH_EXAMPLE "If enabled, a MinVR example program will be also compiled and installed. It requires MinVR to work." OFF)
 
+if(BUILD_WITH_FILEBROWSER)
+	set(CMAKE_CXX_STANDARD 17)
+else()
+	set(CMAKE_CXX_STANDARD 11)
+endif()
+
+if(COMMAND cmake_policy)
+  cmake_policy(SET CMP0003 NEW)
+endif(COMMAND cmake_policy)
+
+add_definitions(-D_HAS_STD_BYTE=0)
 #---------------------- Find & Add Dependencies ----------------------
 
 set(EXTERNAL_CMAKE_SCRIPTS_DIR ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
 
 # MinVR (linked with an imported cmake target so no need to specify include dirs)
-find_package(MinVR REQUIRED)	
-	
+if(BUILD_WITH_EXAMPLE)
+	find_package(MinVR REQUIRED)	
+endif(BUILD_WITH_EXAMPLE)
+
 add_subdirectory(src)

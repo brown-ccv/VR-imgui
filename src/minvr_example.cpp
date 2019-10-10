@@ -3,11 +3,12 @@
 #include "VRMenu.h"
 #include <glm/gtc/type_ptr.inl>
 #include "VRMenuHandler.h"
+#include <imfilebrowser.h>
 
 // OpenGL platform-specific headers
 #ifdef _MSC_VER
 #define NOMINMAX
-#include <windows.h>
+//#include <windows.h>
 #include <GL/gl.h>
 #include <gl/GLU.h>
 #elif defined(__APPLE__)
@@ -23,16 +24,41 @@
 //#include "main/VREventInternal.h"
 
 using namespace MinVR;
+ImGui::FileBrowser fileDialog;
 
 class MyVRApp : public VRApp
 {
 public:
 	void menu_callback()
 	{
-		//ImGui::ShowDemoWindow();
-		ImGui::Begin("Test VR Window");
+		// create a file browser instance
+		
 
-		ImGui::End();
+		//...do other stuff like ImGui::NewFrame();
+
+		if (ImGui::Begin("dummy window"))
+		{
+			// open file dialog when user clicks this button
+			if (ImGui::Button("open file dialog")){
+				// (optional) set browser properties
+				fileDialog.SetTitle("title");
+				fileDialog.SetTypeFilters({ ".h", ".cpp" });
+
+				fileDialog.Open();
+			}
+			ImGui::End();
+			
+
+			fileDialog.Display();
+
+			if (fileDialog.HasSelected())
+			{
+				std::cout << "Selected filename" << fileDialog.GetSelected().string() << std::endl;
+				fileDialog.ClearSelected();
+			}
+
+			////...do other stuff like ImGui::Render();
+		}
 	}
 
 	void menu_callback2()
