@@ -38,26 +38,29 @@
 class VRMenu
 {
 public:
-	VRMenu(int res_x, int res_y, float width, float height, ImFontAtlas* font_atlas = NULL);
+	VRMenu(int res_x, int res_y, float width, float height, ImFontAtlas* font_atlas = NULL, bool is2D = false);
 	~VRMenu();
 
 	//renders the UI to texture - only call once per draw loop, e.g. in context
 	void renderToTexture(); 
 	void drawMenu();
-
+	
 	//interaction
 	float menu_controller_distance(const glm::mat4 &controllerpose, float max_distance = std::numeric_limits<float>::max());
 	void setControllerPose(const glm::mat4 &controllerpose);
 	void setButtonClick(int button, int state);
 	void setAnalogValue(float value);
 	void set_callback(std::function<void()> callback);
+	void call_callback();
 	void setMenuPose(const glm::mat4 pose);
 	ImGuiIO& getIO();
 	bool isGrabbed()
 	{
 		return m_grabbing_active;
 	};
-
+	void newFrame(bool setContext = true);
+	static bool m_glew_initialised;
+	
 private:
 	//render resolution
 	int m_res_x;
@@ -88,16 +91,16 @@ private:
 	ImFontAtlas * m_font_atlas; //shared handled through main
 
 	//new frame timing
-	void newFrame();
 	std::chrono::steady_clock::time_point m_lastTime;
 
-	static bool m_glew_initialised;
+	
 	bool m_grabbing_active;
 	glm::mat4 m_pose_grab_relative;
 	ImVec2 grab_mouse_pos;
 
 	int m_MSAA_buffers;
 	float m_font_scale;
+	bool m_is2D;
 };
 
 #endif // VRMENU_H

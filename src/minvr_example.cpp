@@ -32,7 +32,10 @@ public:
 	void menu_callback()
 	{
 		// create a file browser instance
-		
+		if (m_is2d) {
+			ImGui::SetNextWindowSize(ImVec2(300, 300), ImGuiCond_Once);
+			ImGui::SetNextWindowPos(ImVec2(40, 40), ImGuiCond_Once);
+		}
 
 		//...do other stuff like ImGui::NewFrame();
 
@@ -63,12 +66,28 @@ public:
 
 	void menu_callback2()
 	{
+		if (m_is2d) {
+			ImGui::SetNextWindowSize(ImVec2(500, 300), ImGuiCond_Once);
+			ImGui::SetNextWindowPos(ImVec2(400, 40), ImGuiCond_Once);
+		}
 		ImGui::ShowDemoWindow();
 	}
 
-	MyVRApp(int argc, char** argv, const std::string& configFile) : VRApp(argc, argv)
+	MyVRApp(int argc, char** argv, const std::string& configFile) : VRApp(argc, argv), m_is2d(false)
 	{
-		menus = new VRMenuHandler();
+		int argc_int = this->getLeftoverArgc();
+		char** argv_int = this->getLeftoverArgv();
+
+		if (argc_int >= 2) {
+			for (int i = 1; i < argc_int; i++) {
+				if (std::string(argv_int[i]) == std::string("use2DUI"))
+				{
+					m_is2d = true;
+				}
+			}
+		}
+		
+		menus = new VRMenuHandler(m_is2d);
 		menus->addNewMenu(std::bind(&MyVRApp::menu_callback, this), 1024, 1024, 1, 1);
 		
 		VRMenu* menu = menus->addNewMenu(std::bind(&MyVRApp::menu_callback2, this), 1024, 1024, 1, 1);
@@ -80,55 +99,93 @@ public:
 		std::cerr << "Delete" << std::endl;
 	}
 
+	virtual void onCursorMove(const VRCursorEvent& event)
+	{
+		if (event.getName() == "Mouse_Move" && menus != NULL)
+		{
+			menus->setCursorPos(event.getPos()[0], event.getPos()[1]);
+		}
+	}
+
 	virtual void onAnalogChange(const VRAnalogEvent &event) {
-		if (event.getName() == "HTC_Controller_Right_TrackPad0_Y" || event.getName() == "HTC_Controller_1_TrackPad0_Y")
-			menus->setAnalogValue(event.getValue());
+		if (menus != NULL && menus->windowIsActive() && event.getName() == "HTC_Controller_Right_TrackPad0_Y" || event.getName() == "HTC_Controller_1_TrackPad0_Y")
+				menus->setAnalogValue(event.getValue());
 	}
 
 	virtual void onTrackerMove(const VRTrackerEvent &event) {
 		if (event.getName() == "HTC_Controller_Right_Move" || event.getName() == "HTC_Controller_1_Move") {
-			menus->setControllerPose(glm::make_mat4(event.getTransform()));
+				menus->setControllerPose(glm::make_mat4(event.getTransform()));
 		}
 	}
 
 	virtual void onButtonDown(const VRButtonEvent &event)
 	{
-		if (event.getName() == "HTC_Controller_Right_Axis1Button_Down" || event.getName() == "HTC_Controller_1_Axis1Button_Down")
-		{
-			//left click
-			menus->setButtonClick(0, 1);
-		}
-		else if (event.getName() == "HTC_Controller_Right_GripButton_Down" || event.getName() == "HTC_Controller_1_GripButton_Down")
-		{
-			//middle click
-			menus->setButtonClick(2, 1);
-		}
-		//else if (event.getName() == "HTC_Controller_Right_AButton_Down" || event.getName() == "HTC_Controller_1_AButton_Down")
-		else if (event.getName() == "HTC_Controller_Right_Axis0Button_Down" || event.getName() == "HTC_Controller_1_Axis0Button_Down")
-		{
-			//right click
-			menus->setButtonClick(1, 1);
+		if (menus != NULL && menus->windowIsActive()) {
+			if (event.getName() == "HTC_Controller_Right_Axis1Button_Down" || event.getName() == "HTC_Controller_1_Axis1Button_Down")
+			{
+				//left click
+				menus->setButtonClick(0, 1);
+			}
+			else if (event.getName() == "HTC_Controller_Right_GripButton_Down" || event.getName() == "HTC_Controller_1_GripButton_Down")
+			{
+				//middle click
+				menus->setButtonClick(2, 1);
+			}
+			//else if (event.getName() == "HTC_Controller_Right_AButton_Down" || event.getName() == "HTC_Controller_1_AButton_Down")
+			else if (event.getName() == "HTC_Controller_Right_Axis0Button_Down" || event.getName() == "HTC_Controller_1_Axis0Button_Down")
+			{
+				//right click
+				menus->setButtonClick(1, 1);
+			}
+			else if (event.getName() == "MouseBtnLeft_Down")
+			{
+				menus->setButtonClick(0, 1);
+			}
+			else if (event.getName() == "MouseBtnRight_Down")
+			{
+				menus->setButtonClick(1, 1);
+			}
 		}
 	}
 
 	virtual void onButtonUp(const VRButtonEvent &event)
 	{
-		if (event.getName() == "HTC_Controller_Right_Axis1Button_Up" || event.getName() == "HTC_Controller_1_Axis1Button_Up")
-		{
-			//left click
-			menus->setButtonClick(0, 0);
+		if (menus != NULL) {
+			if (event.getName() == "HTC_Controller_Right_Axis1Button_Up" || event.getName() == "HTC_Controller_1_Axis1Button_Up")
+			{
+				//left click
+				menus->setButtonClick(0, 0);
 
-		}
-		else if (event.getName() == "HTC_Controller_Right_GripButton_Up" || event.getName() == "HTC_Controller_1_GripButton_Up")
-		{
-			//middle click
-			menus->setButtonClick(2, 0);
-		}
-		//else if (event.getName() == "HTC_Controller_Right_AButton_Down" || event.getName() == "HTC_Controller_1_AButton_Down")
-		else if (event.getName() == "HTC_Controller_Right_Axis0Button_Up" || event.getName() == "HTC_Controller_1_Axis0Button_Up")
-		{
-			//right click
-			menus->setButtonClick(1, 0);
+			}
+			else if (event.getName() == "HTC_Controller_Right_GripButton_Up" || event.getName() == "HTC_Controller_1_GripButton_Up")
+			{
+				//middle click
+				menus->setButtonClick(2, 0);
+			}
+			//else if (event.getName() == "HTC_Controller_Right_AButton_Down" || event.getName() == "HTC_Controller_1_AButton_Down")
+			else if (event.getName() == "HTC_Controller_Right_Axis0Button_Up" || event.getName() == "HTC_Controller_1_Axis0Button_Up")
+			{
+				//right click
+				menus->setButtonClick(1, 0);
+			}
+			if (event.getName() == "MouseBtnLeft_Up")
+			{
+				menus->setButtonClick(0, 0);
+			}
+			else if (event.getName() == "MouseBtnRight_Up")
+			{
+				menus->setButtonClick(1, 0);
+			}
+			else if (menus->windowIsActive() && event.getName() == "MouseBtnMiddle_ScrollUp")
+			{
+				menus->setAnalogValue(10);
+			}
+
+			if (menus->windowIsActive() && event.getName() == "MouseBtnMiddle_ScrollDown")
+			{
+				menus->setAnalogValue(-10);
+			}
+			
 		}
 	}
 
@@ -164,6 +221,7 @@ public:
 
 protected:
 	VRMenuHandler *menus;
+	bool m_is2d;
 };
 
 

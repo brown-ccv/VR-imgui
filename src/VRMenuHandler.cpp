@@ -37,7 +37,7 @@
 
 #include <iostream>
 
-VRMenuHandler::VRMenuHandler() :m_active_menu(NULL)
+VRMenuHandler::VRMenuHandler(bool is2D) :m_active_menu(NULL), m_is2D(is2D), m_imgui2D_initialised(false), m_isHover(false)
 {
 	m_font_atlas = IM_NEW(ImFontAtlas)();
 	
@@ -48,73 +48,150 @@ VRMenuHandler::~VRMenuHandler()
 	//delete and clean menus
 	for (auto menu : m_menus)
 		delete menu;
+	
 	m_menus.clear();
 
 	//delete font atlas
 	delete m_font_atlas;
 	//shutdown opengl3 
 	ImGui_ImplOpenGL3_Shutdown();
+	if(m_imgui2D_initialised)
+		ImGui::DestroyContext();
 }
 
 void VRMenuHandler::renderToTexture()
 {
-	//render menus to texture
-	for (auto &menu : m_menus)
-		menu->renderToTexture();
+	if (!m_is2D) {
+		//render menus to texture
+		for (auto& menu : m_menus)
+			menu->renderToTexture();
+	}
 }
 
 void VRMenuHandler::drawMenu()
 {
-	//draw menus
-	for (auto &menu : m_menus)
-		menu->drawMenu();
+	if (!m_is2D) {
+		//draw menus
+		for (auto& menu : m_menus)
+			menu->drawMenu();
+	}
+	else if(!m_menus.empty())
+	{
+		if (!VRMenu::m_glew_initialised)
+		{
+			std::cerr << "Init glew" << std::endl;
+			glewInit();
+			VRMenu::m_glew_initialised = true;
+		}
+
+		if (!m_imgui2D_initialised){
+			std::cerr << "Init ImGui" << std::endl;
+			IMGUI_CHECKVERSION();
+			ImGui::CreateContext(m_font_atlas);
+			ImGuiIO& io = ImGui::GetIO();
+			ImGui_ImplOpenGL3_Init("#version 330");
+
+			// Setup Dear ImGui style
+			ImGui::StyleColorsDark();
+			m_imgui2D_initialised = true;
+		}
+		ImGuiIO& io = ImGui::GetIO();
+		GLint last_viewport[4];
+		glGetIntegerv(GL_VIEWPORT, last_viewport);
+		io.DisplaySize = ImVec2((float)last_viewport[2], (float)last_viewport[3]);
+
+		ImGui_ImplOpenGL3_NewFrame();
+		m_menus[0]->newFrame(false);
+		ImGui::NewFrame(); //Here all the events are interpreted
+
+		for (auto& menu : m_menus)
+			menu->call_callback();
+
+		ImGui::Render();
+		ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+
+		if (ImGui::GetCurrentContext()->HoveredWindow != NULL)
+			m_isHover = true;
+		else
+			m_isHover = false;
+	}
 }
 
 void VRMenuHandler::setControllerPose(const glm::mat4 &controllerpose, float max_distance)
 {
-	m_active_menu = NULL;
-	float min_distance = max_distance;
-	for (auto &menu : m_menus)
-	{
-		if (menu->isGrabbed())
+	if (!m_is2D) {
+		m_active_menu = NULL;
+		float min_distance = max_distance;
+		for (auto& menu : m_menus)
 		{
-			m_active_menu = menu;
-			break;
+			if (menu->isGrabbed())
+			{
+				m_active_menu = menu;
+				break;
+			}
+
+			float dist = menu->menu_controller_distance(controllerpose);
+			if (dist < min_distance)
+			{
+				min_distance = dist;
+				m_active_menu = menu;
+			}
 		}
 
-		float dist = menu->menu_controller_distance(controllerpose);
-		if (dist < min_distance)
-		{
-			min_distance = dist;
-			m_active_menu = menu;
-		}
+		for (auto& menu : m_menus)
+			if (menu == m_active_menu) {
+				menu->setControllerPose(controllerpose);
+			}
+			else {
+				menu->getIO().MouseDrawCursor = false;
+				//menu->getIO().MousePos = ImVec2(-1, -1);
+			}
 	}
-
-	for (auto &menu : m_menus)
-		if (menu == m_active_menu)
-			menu->setControllerPose(controllerpose);
-		else{
-			menu->getIO().MouseDrawCursor = false;
-			//menu->getIO().MousePos = ImVec2(-1, -1);
-		}
 }
 
 void VRMenuHandler::setButtonClick(int button, int state)
 {
-	if (m_active_menu)
-		m_active_menu->setButtonClick(button, state);
+	if (!m_is2D) {
+		if (m_active_menu)
+			m_active_menu->setButtonClick(button, state);
+	}
+	else if(m_imgui2D_initialised)
+	{
+		ImGuiIO& io = ImGui::GetIO();
+		if (state == 1) {
+			io.MouseDown[button] = true;
+		}
+		else {
+			io.MouseDown[button] = false;
+		}
+	}
 }
 
 void VRMenuHandler::setAnalogValue(float value)
 {
-	if (m_active_menu){
-		m_active_menu->setAnalogValue(value);
+	if (!m_is2D) {
+		if (m_active_menu) {
+			m_active_menu->setAnalogValue(value);
+		}
+	}
+	else if (m_imgui2D_initialised)
+	{
+		ImGuiIO& io = ImGui::GetIO();
+		io.MouseWheel += value * 0.1;
+	}
+}
+
+void VRMenuHandler::setCursorPos(int x, int y)
+{
+	if (m_is2D && m_imgui2D_initialised) {
+		ImGuiIO& io = ImGui::GetIO();
+		io.MousePos = ImVec2(x, y);
 	}
 }
 
 VRMenu* VRMenuHandler::addNewMenu(std::function<void()> callback, int res_x, int res_y, float width, float height)
 {
-	VRMenu * menu = new VRMenu(res_x, res_y, width, height,m_font_atlas);
+	VRMenu * menu = new VRMenu(res_x, res_y, width, height,m_font_atlas, m_is2D);
 	menu->set_callback(callback);
 	m_menus.push_back(menu);
 	return menu;

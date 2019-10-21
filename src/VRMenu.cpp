@@ -62,7 +62,7 @@
 
 bool VRMenu::m_glew_initialised = false;
 
-VRMenu::VRMenu(int res_x, int res_y, float width, float height, ImFontAtlas* font_atlas) : m_res_x(res_x), m_res_y(res_y), m_width(width), m_height(height), m_font_atlas(font_atlas), m_fbo_initialised(false), m_imgui_initialised(false), m_grabbing_active(false)
+VRMenu::VRMenu(int res_x, int res_y, float width, float height, ImFontAtlas* font_atlas, bool is2D) : m_res_x(res_x), m_res_y(res_y), m_width(width), m_height(height), m_font_atlas(font_atlas), m_fbo_initialised(false), m_imgui_initialised(false), m_grabbing_active(false), m_is2D(is2D)
 	, m_MSAA_buffers(4), m_font_scale(2.0)
 {
 	if (m_height == 0)
@@ -74,18 +74,21 @@ VRMenu::VRMenu(int res_x, int res_y, float width, float height, ImFontAtlas* fon
 
 VRMenu::~VRMenu()
 {
-	if (m_fbo_initialised){
-		glDeleteRenderbuffers(1, &m_nDepthBufferId);
-		if (m_MSAA_buffers > 1) glDeleteTextures(1, &m_nRenderTextureId);
-		glDeleteFramebuffers(1, &m_nRenderFramebufferId);
-		glDeleteTextures(1, &m_nRenderTextureId);
-		if (m_MSAA_buffers > 1) glDeleteFramebuffers(1, &m_nResolveFramebufferId);
+	if (!m_is2D) {
+		if (m_fbo_initialised) {
+			glDeleteRenderbuffers(1, &m_nDepthBufferId);
+			if (m_MSAA_buffers > 1) glDeleteTextures(1, &m_nRenderTextureId);
+			glDeleteFramebuffers(1, &m_nRenderFramebufferId);
+			glDeleteTextures(1, &m_nRenderTextureId);
+			if (m_MSAA_buffers > 1) glDeleteFramebuffers(1, &m_nResolveFramebufferId);
+		}
 	}
-
+	
 	if (m_imgui_initialised)
 	{
 		ImGui::DestroyContext(m_imgui_context);
 	}
+
 }
 
 void VRMenu::initFBO()
@@ -186,6 +189,9 @@ void VRMenu::renderToTexture()
 	if (!last_enable_multisample && m_MSAA_buffers > 1) {
 		glEnable(GL_MULTISAMPLE);
 	}
+
+	GLint last_viewport[4];
+	glGetIntegerv(GL_VIEWPORT, last_viewport);
 	glViewport(0, 0, m_res_x, m_res_y);
 	glClearColor(1.0, 1.0, 1.0, 1.0);
 	glClear(GL_COLOR_BUFFER_BIT);
@@ -230,6 +236,8 @@ void VRMenu::renderToTexture()
 	////set back to previous FBO
 	glBindFramebuffer(GL_READ_FRAMEBUFFER, readFboId);
 	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, drawFboId);
+
+	glViewport(last_viewport[0], last_viewport[1], last_viewport[2], last_viewport[3]);
 }
 
 void VRMenu::drawMenu()
@@ -392,12 +400,18 @@ void VRMenu::set_callback(std::function<void()> callback)
 	m_callback = callback;
 }
 
-void VRMenu::newFrame()
+void  VRMenu::call_callback()
+{
+	m_callback();
+}
+
+void VRMenu::newFrame(bool setContext)
 {
 	std::chrono::steady_clock::time_point nowTime = std::chrono::steady_clock::now();
 	std::chrono::duration<double> time_span = std::chrono::duration<double>(nowTime - m_lastTime);
 	
-	ImGui::SetCurrentContext(m_imgui_context);
+	if(setContext)
+		ImGui::SetCurrentContext(m_imgui_context);
 	ImGuiIO& io = ImGui::GetIO();
 	float delta_time = std::chrono::duration_cast<std::chrono::milliseconds>(time_span).count() / 1000.0f;
 	if (delta_time <= 0)

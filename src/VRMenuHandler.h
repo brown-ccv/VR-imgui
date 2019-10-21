@@ -34,7 +34,7 @@
 class VRMenuHandler
 {
 public:
-	VRMenuHandler();
+	VRMenuHandler(bool is2D = false);
 	~VRMenuHandler();
 
 	//creation and removal
@@ -49,12 +49,26 @@ public:
 	void setControllerPose(const glm::mat4 &controllerpose, float max_distance = std::numeric_limits<float>::max());
 	void setButtonClick(int button, int state);
 	void setAnalogValue(float value);
+	void setCursorPos(int x, int y);
+	
+	bool windowIsActive()
+	{
+		if (!m_is2D)
+			return m_active_menu != NULL;
+		else
+			return m_isHover;
+	}
 private:
-
-	bool m_glew_initialised;
 	ImFontAtlas * m_font_atlas;
 	std::vector<VRMenu *> m_menus;
 	VRMenu * m_active_menu;
+
+	bool m_is2D;
+	bool m_imgui2D_initialised;
+	bool m_isHover;
 };
+
+
+
 
 #endif // VRMENUHANDLER_H
