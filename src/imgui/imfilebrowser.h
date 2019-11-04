@@ -11,6 +11,7 @@
 #endif
 
 using ImGuiFileBrowserFlags = int;
+namespace fs = std::filesystem;
 
 enum ImGuiFileBrowserFlags_
 {
@@ -55,10 +56,10 @@ namespace ImGui
         bool HasSelected() const noexcept;
 
         // set current browsing directory
-        bool SetPwd(const std::filesystem::path &pwd = std::filesystem::current_path());
+        bool SetPwd(const fs::path &pwd = fs::current_path());
 
         // returns selected filename. make sense only when HasSelected returns true
-        std::filesystem::path GetSelected() const;
+        fs::path GetSelected() const;
 
         // set selected filename to empty
         void ClearSelected();
@@ -78,7 +79,7 @@ namespace ImGui
             ~ScopeGuard() { func_(); }
         };
 
-        void SetPwdUncatched(const std::filesystem::path &pwd);
+        void SetPwdUncatched(const fs::path &pwd);
 
         ImGuiFileBrowserFlags flags_;
 
@@ -95,7 +96,7 @@ namespace ImGui
         std::vector<const char*> typeFilters_;
         int typeFilterIndex_;
 
-        std::filesystem::path pwd_;
+        fs::path pwd_;
         std::string selectedFilename_;
 
         struct FileRecord
@@ -126,7 +127,7 @@ inline ImGui::FileBrowser::FileBrowser(ImGuiFileBrowserFlags flags)
 
     inputNameBuf_->at(0) = '\0';
     SetTitle("file browser");
-    SetPwd(std::filesystem::current_path());
+    SetPwd(fs::current_path());
 
     typeFilters_.clear();
     typeFilterIndex_ = 0;
@@ -245,7 +246,7 @@ inline void ImGui::FileBrowser::Display()
     if(newPwdLastSecIdx >= 0)
     {
         int i = 0;
-        std::filesystem::path newPwd;
+        fs::path newPwd;
         for(auto &sec : pwd_)
         {
             if(i++ > newPwdLastSecIdx)
@@ -292,7 +293,7 @@ inline void ImGui::FileBrowser::Display()
     // browse files in a child window
 
     float reserveHeight = GetItemsLineHeightWithSpacing();
-    std::filesystem::path newPwd; bool setNewPwd = false;
+    fs::path newPwd; bool setNewPwd = false;
     if(!(flags_ & ImGuiFileBrowserFlags_SelectDirectory) && (flags_ & ImGuiFileBrowserFlags_EnterNewFilename))
         reserveHeight += GetItemsLineHeightWithSpacing();
     {
@@ -396,7 +397,7 @@ inline bool ImGui::FileBrowser::HasSelected() const noexcept
     return ok_;
 }
 
-inline bool ImGui::FileBrowser::SetPwd(const std::filesystem::path &pwd)
+inline bool ImGui::FileBrowser::SetPwd(const fs::path &pwd)
 {
     try
     {
@@ -412,11 +413,11 @@ inline bool ImGui::FileBrowser::SetPwd(const std::filesystem::path &pwd)
         statusStr_ = "last error: unknown";
     }
 
-    SetPwdUncatched(std::filesystem::current_path());
+    SetPwdUncatched(fs::current_path());
     return false;
 }
 
-inline std::filesystem::path ImGui::FileBrowser::GetSelected() const
+inline fs::path ImGui::FileBrowser::GetSelected() const
 {
     return pwd_ / selectedFilename_;
 }
@@ -434,11 +435,11 @@ inline void ImGui::FileBrowser::SetTypeFilters(const std::vector<const char*>& t
     typeFilterIndex_ = 0;
 }
 
-inline void ImGui::FileBrowser::SetPwdUncatched(const std::filesystem::path &pwd)
+inline void ImGui::FileBrowser::SetPwdUncatched(const fs::path &pwd)
 {
     fileRecords_ = { FileRecord{ true, "..", "[D] .." } };
 
-    for(auto &p : std::filesystem::directory_iterator(pwd))
+    for(auto &p : fs::directory_iterator(pwd))
     {
         FileRecord rcd;
 

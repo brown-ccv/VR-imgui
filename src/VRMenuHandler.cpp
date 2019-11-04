@@ -35,6 +35,7 @@
 #include "imgui_impl_opengl3.h"
 #include "imgui.h"
 
+#include <algorithm>
 #include <iostream>
 
 VRMenuHandler::VRMenuHandler(bool is2D) :m_active_menu(NULL), m_is2D(is2D), m_imgui2D_initialised(false), m_isHover(false)

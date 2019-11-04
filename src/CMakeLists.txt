@@ -51,7 +51,9 @@ if(BUILD_WITH_EXAMPLE)
 	)
 
 	TARGET_LINK_LIBRARIES( ImguiVR_test
-				PUBLIC MinVR::MinVR
+				PUBLIC /gpfs/runtime/opt/gcc/8.3/lib64/libstdc++fs.a
+				/gpfs/runtime/opt/minvr/beta/lib64/libGLEW.so
+				MinVR::MinVR
 				ImguiVR
 			)
 			

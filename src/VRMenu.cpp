@@ -151,6 +151,7 @@ void VRMenu::initImgui()
 
 	ImGui::SetCurrentContext(m_imgui_context);
 	ImGuiIO &io = ImGui::GetIO();
+	io.IniFilename = NULL;
 	io.FontGlobalScale = m_font_scale;
 	// Setup Platform/Renderer bindings
 	ImGui_ImplOpenGL3_Init("#version 330");

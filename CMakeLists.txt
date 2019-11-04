@@ -16,9 +16,15 @@ option(BUILD_WITH_EXAMPLE "If enabled, a MinVR example program will be also comp
 
 if(BUILD_WITH_FILEBROWSER)
 	set(CMAKE_CXX_STANDARD 17)
+	#if(LINUX)
+	#  add_compile_options(-lstdc++fs -std=c++17)
+	#endif()
 else()
 	set(CMAKE_CXX_STANDARD 11)
 endif()
+
+add_compile_options(-lstdc++fs)
+add_definitions(-D_GLIBCXX_USE_CXX11_ABI=0)
 
 if(COMMAND cmake_policy)
   cmake_policy(SET CMP0003 NEW)
