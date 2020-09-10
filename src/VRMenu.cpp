@@ -62,14 +62,15 @@
 
 bool VRMenu::m_glew_initialised = false;
 
-VRMenu::VRMenu(int res_x, int res_y, float width, float height, ImFontAtlas* font_atlas, bool is2D) : m_res_x(res_x), m_res_y(res_y), m_width(width), m_height(height), m_font_atlas(font_atlas), m_fbo_initialised(false), m_imgui_initialised(false), m_grabbing_active(false), m_is2D(is2D)
-	, m_MSAA_buffers(4), m_font_scale(2.0)
+VRMenu::VRMenu(int res_x, int res_y, float width, float height, ImFontAtlas* font_atlas, bool is2D, float font_scale) : m_res_x(res_x), m_res_y(res_y), m_width(width), m_height(height), m_font_atlas(font_atlas), m_fbo_initialised(false), m_imgui_initialised(false), m_grabbing_active(false), m_is2D(is2D)
+	, m_MSAA_buffers(4), m_font_scale(font_scale)
 {
 	if (m_height == 0)
 	{
 		m_height = m_width * m_res_y / m_res_x;
 	}
 	m_lastTime = std::chrono::steady_clock::now();
+	m_pose = glm::mat4(1.0f);
 }
 
 VRMenu::~VRMenu()

@@ -37,7 +37,7 @@
 
 #include <iostream>
 
-VRMenuHandler::VRMenuHandler(bool is2D) :m_active_menu(NULL), m_is2D(is2D), m_imgui2D_initialised(false), m_isHover(false)
+VRMenuHandler::VRMenuHandler(bool is2D) :m_active_menu(NULL), m_is2D(is2D), m_imgui2D_initialised(false), m_isHover(false), m_font_scale{1.0f}
 {
 	m_font_atlas = IM_NEW(ImFontAtlas)();
 	
@@ -90,7 +90,7 @@ void VRMenuHandler::drawMenu()
 			ImGui::CreateContext(m_font_atlas);
 			ImGuiIO& io = ImGui::GetIO();
 			ImGui_ImplOpenGL3_Init("#version 330");
-
+			io.FontGlobalScale = m_font_scale;
 			// Setup Dear ImGui style
 			ImGui::StyleColorsDark();
 			m_imgui2D_initialised = true;
@@ -189,9 +189,10 @@ void VRMenuHandler::setCursorPos(int x, int y)
 	}
 }
 
-VRMenu* VRMenuHandler::addNewMenu(std::function<void()> callback, int res_x, int res_y, float width, float height)
+VRMenu* VRMenuHandler::addNewMenu(std::function<void()> callback, int res_x, int res_y, float width, float height, float font_size)
 {
-	VRMenu * menu = new VRMenu(res_x, res_y, width, height,m_font_atlas, m_is2D);
+	m_font_scale = font_size;
+	VRMenu * menu = new VRMenu(res_x, res_y, width, height,m_font_atlas, m_is2D, font_size);
 	menu->set_callback(callback);
 	m_menus.push_back(menu);
 	return menu;
