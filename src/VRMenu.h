@@ -38,7 +38,7 @@
 class VRMenu
 {
 public:
-	VRMenu(int res_x, int res_y, float width, float height, ImFontAtlas* font_atlas = NULL, bool is2D = false);
+	VRMenu(int res_x, int res_y, float width, float height, ImFontAtlas* font_atlas = NULL, bool is2D = false, float font_scale = 2.0f);
 	~VRMenu();
 
 	//renders the UI to texture - only call once per draw loop, e.g. in context

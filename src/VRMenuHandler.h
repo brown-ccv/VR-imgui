@@ -38,7 +38,7 @@ public:
 	~VRMenuHandler();
 
 	//creation and removal
-	VRMenu * addNewMenu(std::function<void()> callback, int res_x, int res_y, float width, float height = 0);
+	VRMenu * addNewMenu(std::function<void()> callback, int res_x, int res_y, float width, float height, float font_size = 2.0);
 	void deleteMenu(VRMenu * menu);
 
 	//render 
@@ -66,6 +66,7 @@ private:
 	bool m_is2D;
 	bool m_imgui2D_initialised;
 	bool m_isHover;
+	float m_font_scale;
 };
 
 
