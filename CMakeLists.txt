@@ -13,6 +13,7 @@ list(APPEND CMAKE_MODULE_PATH  ${CMAKE_CURRENT_SOURCE_DIR}/cmake ${CMAKE_INSTALL
 
 option(BUILD_WITH_FILEBROWSER "If enabled, the imgui-filebrowser will be included. However it requires C++17. If disabled it will be excluded and only requires C++11." OFF)
 option(BUILD_WITH_EXAMPLE "If enabled, a MinVR example program will be also compiled and installed. It requires MinVR to work." OFF)
+option(BUILD_WITH_VIRTUALKEYBOARD "Requires MinVR" OFF)
 
 if(BUILD_WITH_FILEBROWSER)
 	set(CMAKE_CXX_STANDARD 17)
@@ -30,8 +31,8 @@ add_definitions(-D_HAS_STD_BYTE=0)
 set(EXTERNAL_CMAKE_SCRIPTS_DIR ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
 
 # MinVR (linked with an imported cmake target so no need to specify include dirs)
-if(BUILD_WITH_EXAMPLE)
+if(BUILD_WITH_EXAMPLE OR BUILD_WITH_VIRTUALKEYBOARD)
 	find_package(MinVR REQUIRED)	
-endif(BUILD_WITH_EXAMPLE)
+endif(BUILD_WITH_EXAMPLE OR BUILD_WITH_VIRTUALKEYBOARD)
 
 add_subdirectory(src)
