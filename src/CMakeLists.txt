@@ -92,7 +92,7 @@ ADD_LIBRARY(ImguiVR STATIC
 	VRMenu.h
 	VRMenuHandler.cpp
 	VRMenuHandler.h
-	#${imgui_SOURCES} 
+	${imgui_SOURCES} 
     #${KEYBOARD_SOURCE}
 	#${KEYBOARD_INCLUDE}
 	#${KEYBOARD_UI_INCLUDE}
