@@ -100,11 +100,17 @@ ADD_LIBRARY(ImguiVR STATIC
 	#${KEYBOARD_COMMON_INCLUDE}
 )
 
+ message(STATUS  "GLEW0 : ${GLEW_SHARED_LIBRARY_DEBUG}")
+
+
 target_link_libraries(ImguiVR
   ${OPENGL_LIBRARY}
-  ${GLEW_SHARED_LIBRARIES}
   ${GLM_LIBRARIES}
 )
+
+target_link_libraries( ImguiVR debug ${GLEW_SHARED_LIBRARY_DEBUG})
+target_link_libraries( ImguiVR optimized ${GLEW_SHARED_LIBRARY_RELEASE})
+
 install(FILES VRMenu.h VRMenuHandler.h DESTINATION ${CMAKE_INSTALL_PREFIX}/include)
 #install(FILES ${KEYBOARD_INCLUDE} DESTINATION ${CMAKE_INSTALL_PREFIX}/include/KeyBoardWidget/KeyBoard)
 #install(FILES ${KEYBOARD_UI_INCLUDE} DESTINATION ${CMAKE_INSTALL_PREFIX}/include/KeyBoardWidget/UI)
@@ -128,10 +134,16 @@ if(BUILD_WITH_EXAMPLE)
 		minvr_example.cpp 
 	)
 
+    message(STATUS  "GLEW : ${GLEW_LIBRARIES}")
+
 	TARGET_LINK_LIBRARIES( ImguiVR_test
 				PUBLIC MinVR::MinVR
 				ImguiVR
+				${OPENGL_LIBRARY}
 			)
+    
+    TARGET_LINK_LIBRARIES( ImguiVR_test PUBLIC debug ${GLEW_SHARED_LIBRARY_DEBUG})
+    TARGET_LINK_LIBRARIES( ImguiVR_test PUBLIC optimized ${GLEW_SHARED_LIBRARY_RELEASE})
 			
 	install(TARGETS ImguiVR_test DESTINATION bin)
 
