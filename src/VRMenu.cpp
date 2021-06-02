@@ -37,6 +37,11 @@
 #include "GL/glxew.h"
 #endif
 
+#ifdef __APPLE__
+#define GLFW_INCLUDE_GLCOREARB
+#include <GLFW/glfw3.h>
+#endif
+
 #include "VRMenu.h"
 
 // OpenGL platform-specific headers
@@ -167,7 +172,10 @@ void VRMenu::renderToTexture()
 	if (!m_glew_initialised)
 	{
 		std::cerr << "Init glew" << std::endl;
+
+		#ifndef __APPLE__
 		glewInit();
+		#endif
 		m_glew_initialised = true;
 	}
 
