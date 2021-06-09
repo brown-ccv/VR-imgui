@@ -120,7 +120,7 @@ install(FILES VRMenu.h VRMenuHandler.h DESTINATION ${CMAKE_INSTALL_PREFIX}/inclu
 		 
 install(FILES imgui/imgui.h imgui/imgui_internal.h imgui/imconfig.h imgui/imstb_textedit.h DESTINATION ${CMAKE_INSTALL_PREFIX}/include/imgui)
 if(BUILD_WITH_FILEBROWSER)
-	install(FILES imgui/imfilebrowser.h DESTINATION ${CMAKE_INSTALL_PREFIX}/include/imgui)
+	install(FILES imgui/imfilebrowser.h imgui/ImGuiFileBrowser.h DESTINATION ${CMAKE_INSTALL_PREFIX}/include/imgui)
 endif()
 install(TARGETS ImguiVR EXPORT ImguiVR DESTINATION ${CMAKE_INSTALL_PREFIX}/lib)
 install(EXPORT ImguiVR DESTINATION ${CMAKE_INSTALL_PREFIX}/)

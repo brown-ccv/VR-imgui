@@ -13,10 +13,11 @@ endif()
 add_definitions(-DIMGUI_IMPL_OPENGL_LOADER_GLEW)
 
 add_subdirectory(impl)
+add_subdirectory(Dirent)
 
 SET(imgui_SOURCES
 	${imgui_SOURCES}
 	${HEADERS_LOCAL}
-    ${SOURCE_LOCAL}
+    ${SOURCE_LOCAL}	
 	PARENT_SCOPE
 )
