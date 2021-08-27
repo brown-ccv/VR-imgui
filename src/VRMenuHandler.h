@@ -43,13 +43,13 @@ public:
 
 	//render 
 	void renderToTexture();
-	void drawMenu();
+	void drawMenu(int window_width, int window_height, int framebuffer_width, int framebuffer_height);
 	
 	//interaction
 	void setControllerPose(const glm::mat4 &controllerpose, float max_distance = std::numeric_limits<float>::max());
 	void setButtonClick(int button, int state);
 	void setAnalogValue(float value);
-	void setCursorPos(int x, int y);
+	void setCursorPos(float x, float y);
 	
 	bool windowIsActive()
 	{

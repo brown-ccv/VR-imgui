@@ -123,6 +123,7 @@ public:
 	{
 		if (event.getName() == "Mouse_Move" && menus != NULL)
 		{
+			//std::cout << "before " <<event.getPos()[0] << " " <<  event.getPos()[1] << std::endl;
 			menus->setCursorPos(event.getPos()[0], event.getPos()[1]);
 		}
 	}
@@ -217,7 +218,7 @@ public:
 	virtual void onRenderGraphicsScene(const VRGraphicsState &renderState) {
 		
 		glClearColor(0.0, 0.0, 0.0, 1.0);
-		//std::cerr << "On Render" << std::endl;
+		
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		
 		glEnable(GL_NORMALIZE);
@@ -232,8 +233,14 @@ public:
 
 		glMatrixMode(GL_MODELVIEW);
 		glLoadMatrixf(renderState.getViewMatrix());
-
-		menus->drawMenu();
+        
+		int window_w  =renderState.index().getValue("WindowWidth");
+		int window_h  =renderState.index().getValue("WindowHeight");
+		int framebuffer_w  =renderState.index().getValue("FramebufferWidth");
+		int framebuffer_h  =renderState.index().getValue("FramebufferHeight");
+		
+	
+		menus->drawMenu(window_w,window_h,framebuffer_w,framebuffer_h);
 
 		glFlush();
 	}

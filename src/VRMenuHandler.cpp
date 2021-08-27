@@ -24,6 +24,10 @@
 ///\author Benjamin Knorlein
 ///\date 10/1/2019
 
+///\ Fixed bug on not 1:1 screen coordinates to pixel display mapping. 
+///\author Camilo Diaz
+///\date 8/27/2021
+
 #pragma once
 
 #ifdef _MSC_VER
@@ -61,6 +65,7 @@ VRMenuHandler::~VRMenuHandler()
 
 void VRMenuHandler::renderToTexture()
 {
+	
 	if (!m_is2D) {
 		//render menus to texture
 		for (auto& menu : m_menus)
@@ -68,7 +73,7 @@ void VRMenuHandler::renderToTexture()
 	}
 }
 
-void VRMenuHandler::drawMenu()
+void VRMenuHandler::drawMenu(int window_width, int window_height, int framebuffer_width, int framebuffer_height)
 {
 	if (!m_is2D) {
 		//draw menus
@@ -82,6 +87,7 @@ void VRMenuHandler::drawMenu()
 			std::cerr << "Init glew" << std::endl;
 			glewInit();
 			VRMenu::m_glew_initialised = true;
+			
 		}
 
 		if (!m_imgui2D_initialised){
@@ -96,9 +102,13 @@ void VRMenuHandler::drawMenu()
 			m_imgui2D_initialised = true;
 		}
 		ImGuiIO& io = ImGui::GetIO();
-		GLint last_viewport[4];
-		glGetIntegerv(GL_VIEWPORT, last_viewport);
-		io.DisplaySize = ImVec2((float)last_viewport[2], (float)last_viewport[3]);
+
+        glViewport(0,0,(GLsizei)framebuffer_width,(GLsizei)framebuffer_height);
+
+		io.DisplaySize = ImVec2((float)window_width, (float)window_height);
+        if (window_width > 0 && window_height > 0)
+          io.DisplayFramebufferScale = ImVec2((float)framebuffer_width / window_width, (float)framebuffer_height / window_height);
+
 
 		ImGui_ImplOpenGL3_NewFrame();
 		m_menus[0]->newFrame(false);
@@ -181,10 +191,12 @@ void VRMenuHandler::setAnalogValue(float value)
 	}
 }
 
-void VRMenuHandler::setCursorPos(int x, int y)
+void VRMenuHandler::setCursorPos(float x, float y)
 {
 	if (m_is2D && m_imgui2D_initialised) {
 		ImGuiIO& io = ImGui::GetIO();
+		//std::cout << "after " <<x << " " << y << std::endl;
+		
 		io.MousePos = ImVec2(x, y);
 	}
 }
