@@ -3,7 +3,8 @@
 #include "VRMenu.h"
 #include <glm/gtc/type_ptr.inl>
 #include "VRMenuHandler.h"
-#include <imfilebrowser.h>
+//#include <imfilebrowser.h>
+#include "ImGuiFileBrowser.h"
 
 // OpenGL platform-specific headers
 #ifdef _MSC_VER
@@ -25,7 +26,8 @@
 //#include "main/VREventInternal.h"
 
 using namespace MinVR;
-ImGui::FileBrowser fileDialog;
+//ImGui::FileBrowser fileDialog;
+imgui_addons::ImGuiFileBrowser file_dialog;
 
 class MyVRApp : public VRApp
 {
@@ -45,23 +47,41 @@ public:
 			// open file dialog when user clicks this button
 			if (ImGui::Button("open file dialog")){
 				// (optional) set browser properties
-				fileDialog.SetTitle("title");
+			/*	fileDialog.SetTitle("title");
 				fileDialog.SetTypeFilters({ ".h", ".cpp" });
-
-				fileDialog.Open();
+				fileDialog.Open();*/
+				d_open = true;
+				
 			}
 			ImGui::InputText("###exampleInputText", &_inputText);
 			ImGui::End();
 			
 
-			fileDialog.Display();
+		/*	fileDialog.Display();
 
 			if (fileDialog.HasSelected())
 			{
 				std::cout << "Selected filename" << fileDialog.GetSelected().string() << std::endl;
 				fileDialog.ClearSelected();
+			}*/
+			if (d_open)
+			{
+				ImGui::OpenPopup("Open File");
+				d_open = false;
 			}
 
+      if (file_dialog.showFileDialog("Open File", imgui_addons::ImGuiFileBrowser::DialogMode::OPEN, ImVec2(700, 310)))
+      {
+        std::cout << file_dialog.selected_fn << std::endl;      // The name of the selected file or directory in case of Select Directory dialog mode
+        std::cout << file_dialog.selected_path << std::endl;    // The absolute path to the selected file
+      }
+      if (file_dialog.showFileDialog("Save File", imgui_addons::ImGuiFileBrowser::DialogMode::SAVE, ImVec2(700, 310), ".png,.jpg,.bmp"))
+      {
+        std::cout << file_dialog.selected_fn << std::endl;      // The name of the selected file or directory in case of Select Directory dialog mode
+        std::cout << file_dialog.selected_path << std::endl;    // The absolute path to the selected file
+        std::cout << file_dialog.ext << std::endl;              // Access ext separately (For SAVE mode)
+        //Do writing of files based on extension here
+      }
 			////...do other stuff like ImGui::Render();
 		}
 	}
@@ -106,6 +126,7 @@ public:
 	{
 		if (event.getName() == "Mouse_Move" && menus != NULL)
 		{
+			//std::cout << "before " <<event.getPos()[0] << " " <<  event.getPos()[1] << std::endl;
 			menus->setCursorPos(event.getPos()[0], event.getPos()[1]);
 		}
 	}
@@ -200,7 +221,7 @@ public:
 	virtual void onRenderGraphicsScene(const VRGraphicsState &renderState) {
 		
 		glClearColor(0.0, 0.0, 0.0, 1.0);
-		//std::cerr << "On Render" << std::endl;
+		
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		
 		glEnable(GL_NORMALIZE);
@@ -215,8 +236,14 @@ public:
 
 		glMatrixMode(GL_MODELVIEW);
 		glLoadMatrixf(renderState.getViewMatrix());
-
-		menus->drawMenu();
+        
+		int window_w  =renderState.index().getValue("WindowWidth");
+		int window_h  =renderState.index().getValue("WindowHeight");
+		int framebuffer_w  =renderState.index().getValue("FramebufferWidth");
+		int framebuffer_h  =renderState.index().getValue("FramebufferHeight");
+		
+	
+		menus->drawMenu(window_w,window_h,framebuffer_w,framebuffer_h);
 
 		glFlush();
 	}
@@ -226,6 +253,7 @@ protected:
 	VRMenuHandler *menus;
 	std::string _inputText = "this is a test";
 	bool m_is2d;
+	bool d_open = false;
 };
 
 

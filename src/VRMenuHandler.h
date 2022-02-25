@@ -38,18 +38,18 @@ public:
 	~VRMenuHandler();
 
 	//creation and removal
-	VRMenu * addNewMenu(std::function<void()> callback, int res_x, int res_y, float width, float height = 0);
+	VRMenu * addNewMenu(std::function<void()> callback, int res_x, int res_y, float width, float height, float font_size = 2.0);
 	void deleteMenu(VRMenu * menu);
 
 	//render 
 	void renderToTexture();
-	void drawMenu();
+	void drawMenu(int window_width, int window_height, int framebuffer_width, int framebuffer_height);
 	
 	//interaction
 	void setControllerPose(const glm::mat4 &controllerpose, float max_distance = std::numeric_limits<float>::max());
 	void setButtonClick(int button, int state);
 	void setAnalogValue(float value);
-	void setCursorPos(int x, int y);
+	void setCursorPos(float x, float y);
 	
 	bool windowIsActive()
 	{
@@ -66,6 +66,7 @@ private:
 	bool m_is2D;
 	bool m_imgui2D_initialised;
 	bool m_isHover;
+	float m_font_scale;
 };
 
 

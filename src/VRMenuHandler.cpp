@@ -24,6 +24,10 @@
 ///\author Benjamin Knorlein
 ///\date 10/1/2019
 
+///\ Fixed bug on not 1:1 screen coordinates to pixel display mapping. 
+///\author Camilo Diaz
+///\date 8/27/2021
+
 #pragma once
 
 #ifdef _MSC_VER
@@ -37,7 +41,7 @@
 
 #include <iostream>
 
-VRMenuHandler::VRMenuHandler(bool is2D) :m_active_menu(NULL), m_is2D(is2D), m_imgui2D_initialised(false), m_isHover(false)
+VRMenuHandler::VRMenuHandler(bool is2D) :m_active_menu(NULL), m_is2D(is2D), m_imgui2D_initialised(false), m_isHover(false), m_font_scale{1.0f}
 {
 	m_font_atlas = IM_NEW(ImFontAtlas)();
 	
@@ -61,6 +65,7 @@ VRMenuHandler::~VRMenuHandler()
 
 void VRMenuHandler::renderToTexture()
 {
+	
 	if (!m_is2D) {
 		//render menus to texture
 		for (auto& menu : m_menus)
@@ -68,7 +73,7 @@ void VRMenuHandler::renderToTexture()
 	}
 }
 
-void VRMenuHandler::drawMenu()
+void VRMenuHandler::drawMenu(int window_width, int window_height, int framebuffer_width, int framebuffer_height)
 {
 	if (!m_is2D) {
 		//draw menus
@@ -82,6 +87,7 @@ void VRMenuHandler::drawMenu()
 			std::cerr << "Init glew" << std::endl;
 			glewInit();
 			VRMenu::m_glew_initialised = true;
+			
 		}
 
 		if (!m_imgui2D_initialised){
@@ -90,15 +96,19 @@ void VRMenuHandler::drawMenu()
 			ImGui::CreateContext(m_font_atlas);
 			ImGuiIO& io = ImGui::GetIO();
 			ImGui_ImplOpenGL3_Init("#version 330");
-
+			io.FontGlobalScale = m_font_scale;
 			// Setup Dear ImGui style
 			ImGui::StyleColorsDark();
 			m_imgui2D_initialised = true;
 		}
 		ImGuiIO& io = ImGui::GetIO();
-		GLint last_viewport[4];
-		glGetIntegerv(GL_VIEWPORT, last_viewport);
-		io.DisplaySize = ImVec2((float)last_viewport[2], (float)last_viewport[3]);
+
+        glViewport(0,0,(GLsizei)framebuffer_width,(GLsizei)framebuffer_height);
+
+		io.DisplaySize = ImVec2((float)window_width, (float)window_height);
+        if (window_width > 0 && window_height > 0)
+          io.DisplayFramebufferScale = ImVec2((float)framebuffer_width / window_width, (float)framebuffer_height / window_height);
+
 
 		ImGui_ImplOpenGL3_NewFrame();
 		m_menus[0]->newFrame(false);
@@ -181,17 +191,20 @@ void VRMenuHandler::setAnalogValue(float value)
 	}
 }
 
-void VRMenuHandler::setCursorPos(int x, int y)
+void VRMenuHandler::setCursorPos(float x, float y)
 {
 	if (m_is2D && m_imgui2D_initialised) {
 		ImGuiIO& io = ImGui::GetIO();
+		//std::cout << "after " <<x << " " << y << std::endl;
+		
 		io.MousePos = ImVec2(x, y);
 	}
 }
 
-VRMenu* VRMenuHandler::addNewMenu(std::function<void()> callback, int res_x, int res_y, float width, float height)
+VRMenu* VRMenuHandler::addNewMenu(std::function<void()> callback, int res_x, int res_y, float width, float height, float font_size)
 {
-	VRMenu * menu = new VRMenu(res_x, res_y, width, height,m_font_atlas, m_is2D);
+	m_font_scale = font_size;
+	VRMenu * menu = new VRMenu(res_x, res_y, width, height,m_font_atlas, m_is2D, font_size);
 	menu->set_callback(callback);
 	m_menus.push_back(menu);
 	return menu;
