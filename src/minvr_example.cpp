@@ -20,6 +20,7 @@
 #include <GL/glu.h>
 #endif
 
+#include "imgui_stdlib.h"
 
 //#include "main/VREventInternal.h"
 
@@ -49,6 +50,7 @@ public:
 
 				fileDialog.Open();
 			}
+			ImGui::InputText("###exampleInputText", &_inputText);
 			ImGui::End();
 			
 
@@ -87,6 +89,7 @@ public:
 			}
 		}
 		
+    std::cout << "m_is2d is " << m_is2d << std::endl;
 		menus = new VRMenuHandler(m_is2d);
 		menus->addNewMenu(std::bind(&MyVRApp::menu_callback, this), 1024, 1024, 1, 1);
 		
@@ -221,6 +224,7 @@ public:
 
 protected:
 	VRMenuHandler *menus;
+	std::string _inputText = "this is a test";
 	bool m_is2d;
 };
 

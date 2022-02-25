@@ -63,7 +63,7 @@
 bool VRMenu::m_glew_initialised = false;
 
 VRMenu::VRMenu(int res_x, int res_y, float width, float height, ImFontAtlas* font_atlas, bool is2D) : m_res_x(res_x), m_res_y(res_y), m_width(width), m_height(height), m_font_atlas(font_atlas), m_fbo_initialised(false), m_imgui_initialised(false), m_grabbing_active(false), m_is2D(is2D)
-	, m_MSAA_buffers(4), m_font_scale(2.0)
+	, m_MSAA_buffers(4), m_font_scale(2.0), m_pose(glm::mat4(1)), m_pose_grab_relative(glm::mat4(1))
 {
 	if (m_height == 0)
 	{
@@ -166,8 +166,17 @@ void VRMenu::renderToTexture()
 	if (!m_glew_initialised)
 	{
 		std::cerr << "Init glew" << std::endl;
-		glewInit();
-		m_glew_initialised = true;
+    HGLRC  v = wglGetCurrentContext();
+    if (v == NULL)
+    {
+      
+      
+      //std::cout << "already exists " << std::endl;
+    }
+    glewInit();
+    m_glew_initialised = true;
+    
+		//m_glew_initialised = true;
 	}
 
 	if (!m_imgui_initialised)
@@ -232,6 +241,16 @@ void VRMenu::renderToTexture()
 			GL_COLOR_BUFFER_BIT,
 			GL_LINEAR);
 	}
+
+  /*glBindFramebuffer(GL_READ_FRAMEBUFFER, m_nResolveFramebufferId);
+  int* buffer = new int[m_res_x * m_res_y * 3];
+  glReadPixels(0, 0, m_res_x, m_res_y, GL_BGR, GL_UNSIGNED_BYTE, buffer);
+  FILE   *out = fopen("test2.tga", "w");
+  short  TGAhead[] = { 0, 2, 0, 0, 0, 0, m_res_x, m_res_y, 24 };
+  fwrite(&TGAhead, sizeof(TGAhead), 1, out);
+  fwrite(buffer, 3 * m_res_x * m_res_y, 1, out);
+  fclose(out);*/
+
 
 	////set back to previous FBO
 	glBindFramebuffer(GL_READ_FRAMEBUFFER, readFboId);
