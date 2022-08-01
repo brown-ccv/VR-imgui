@@ -41,10 +41,10 @@
 
 #include <iostream>
 
-VRMenuHandler::VRMenuHandler(bool is2D) :m_active_menu(NULL), m_is2D(is2D), m_imgui2D_initialised(false), m_isHover(false), m_font_scale{1.0f}
+VRMenuHandler::VRMenuHandler(bool is2D) :m_active_menu(NULL), m_is2D(is2D), m_imgui2D_initialised(false), m_isHover(false), m_font_scale{ 1.0f }
 {
 	m_font_atlas = IM_NEW(ImFontAtlas)();
-	
+
 }
 
 VRMenuHandler::~VRMenuHandler()
@@ -52,20 +52,26 @@ VRMenuHandler::~VRMenuHandler()
 	//delete and clean menus
 	for (auto menu : m_menus)
 		delete menu;
-	
+
 	m_menus.clear();
 
 	//delete font atlas
 	delete m_font_atlas;
 	//shutdown opengl3 
 	ImGui_ImplOpenGL3_Shutdown();
-	if(m_imgui2D_initialised)
+
+	if (m_imgui2D_initialised)
+	{
+
 		ImGui::DestroyContext();
+
+	}
+
 }
 
 void VRMenuHandler::renderToTexture()
 {
-	
+
 	if (!m_is2D) {
 		//render menus to texture
 		for (auto& menu : m_menus)
@@ -80,18 +86,14 @@ void VRMenuHandler::drawMenu(int window_width, int window_height, int framebuffe
 		for (auto& menu : m_menus)
 			menu->drawMenu();
 	}
-	else if(!m_menus.empty())
+	else if (!m_menus.empty())
 	{
 		if (!VRMenu::m_glew_initialised)
 		{
-			std::cerr << "Init glew" << std::endl;
 			glewInit();
-			VRMenu::m_glew_initialised = true;
-			
 		}
 
-		if (!m_imgui2D_initialised){
-			std::cerr << "Init ImGui" << std::endl;
+		if (!m_imgui2D_initialised) {
 			IMGUI_CHECKVERSION();
 			ImGui::CreateContext(m_font_atlas);
 			ImGuiIO& io = ImGui::GetIO();
@@ -103,11 +105,11 @@ void VRMenuHandler::drawMenu(int window_width, int window_height, int framebuffe
 		}
 		ImGuiIO& io = ImGui::GetIO();
 
-        glViewport(0,0,(GLsizei)framebuffer_width,(GLsizei)framebuffer_height);
+		glViewport(0, 0, (GLsizei)framebuffer_width, (GLsizei)framebuffer_height);
 
 		io.DisplaySize = ImVec2((float)window_width, (float)window_height);
-        if (window_width > 0 && window_height > 0)
-          io.DisplayFramebufferScale = ImVec2((float)framebuffer_width / window_width, (float)framebuffer_height / window_height);
+		if (window_width > 0 && window_height > 0)
+			io.DisplayFramebufferScale = ImVec2((float)framebuffer_width / window_width, (float)framebuffer_height / window_height);
 
 
 		ImGui_ImplOpenGL3_NewFrame();
@@ -127,7 +129,7 @@ void VRMenuHandler::drawMenu(int window_width, int window_height, int framebuffe
 	}
 }
 
-void VRMenuHandler::setControllerPose(const glm::mat4 &controllerpose, float max_distance)
+void VRMenuHandler::setControllerPose(const glm::mat4& controllerpose, float max_distance)
 {
 	if (!m_is2D) {
 		m_active_menu = NULL;
@@ -165,7 +167,7 @@ void VRMenuHandler::setButtonClick(int button, int state)
 		if (m_active_menu)
 			m_active_menu->setButtonClick(button, state);
 	}
-	else if(m_imgui2D_initialised)
+	else if (m_imgui2D_initialised)
 	{
 		ImGuiIO& io = ImGui::GetIO();
 		if (state == 1) {
@@ -196,7 +198,7 @@ void VRMenuHandler::setCursorPos(float x, float y)
 	if (m_is2D && m_imgui2D_initialised) {
 		ImGuiIO& io = ImGui::GetIO();
 		//std::cout << "after " <<x << " " << y << std::endl;
-		
+
 		io.MousePos = ImVec2(x, y);
 	}
 }
@@ -204,7 +206,7 @@ void VRMenuHandler::setCursorPos(float x, float y)
 VRMenu* VRMenuHandler::addNewMenu(std::function<void()> callback, int res_x, int res_y, float width, float height, float font_size)
 {
 	m_font_scale = font_size;
-	VRMenu * menu = new VRMenu(res_x, res_y, width, height,m_font_atlas, m_is2D, font_size);
+	VRMenu* menu = new VRMenu(res_x, res_y, width, height, m_font_atlas, m_is2D, font_size);
 	menu->set_callback(callback);
 	m_menus.push_back(menu);
 	return menu;
