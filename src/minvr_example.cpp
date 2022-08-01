@@ -122,6 +122,13 @@ public:
 		std::cerr << "Delete" << std::endl;
 	}
 
+  void onGenericEvent(const VRDataIndex& index)
+  {
+    if (index.getName() == "WindowClose") {
+      shutdown();
+    }
+  }
+
 	virtual void onCursorMove(const VRCursorEvent& event)
 	{
 		if (event.getName() == "Mouse_Move" && menus != NULL)

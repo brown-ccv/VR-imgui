@@ -59,8 +59,15 @@ VRMenuHandler::~VRMenuHandler()
 	delete m_font_atlas;
 	//shutdown opengl3 
 	ImGui_ImplOpenGL3_Shutdown();
-	if(m_imgui2D_initialised)
+	std::cerr << "~VRMenuHandler  3" << std::endl;
+	if (m_imgui2D_initialised)
+	{
+		std::cerr << "~VRMenuHandler  4" << std::endl;
 		ImGui::DestroyContext();
+		std::cerr << "~VRMenuHandler  5" << std::endl;
+	}
+		
+	std::cerr << "~VRMenuHandler  6" << std::endl;
 }
 
 void VRMenuHandler::renderToTexture()
