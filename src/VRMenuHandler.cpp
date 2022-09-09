@@ -55,8 +55,7 @@ VRMenuHandler::~VRMenuHandler()
 
 	m_menus.clear();
 
-	//delete font atlas
-	delete m_font_atlas;
+	
 	//shutdown opengl3 
 	ImGui_ImplOpenGL3_Shutdown();
 
@@ -66,6 +65,9 @@ VRMenuHandler::~VRMenuHandler()
 		ImGui::DestroyContext();
 
 	}
+
+	//delete font atlas
+	delete m_font_atlas;
 
 }
 

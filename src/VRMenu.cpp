@@ -1,25 +1,25 @@
 ﻿//  ----------------------------------
 //  Copyright © 2015, Brown University, Providence, RI.
-//  
+//
 //  All Rights Reserved
-//   
-//  Use of the software is provided under the terms of the GNU General Public License version 3 
-//  as published by the Free Software Foundation at http://www.gnu.org/licenses/gpl-3.0.html, provided 
-//  that this copyright notice appear in all copies and that the name of Brown University not be used in 
-//  advertising or publicity pertaining to the use or distribution of the software without specific written 
+//
+//  Use of the software is provided under the terms of the GNU General Public License version 3
+//  as published by the Free Software Foundation at http://www.gnu.org/licenses/gpl-3.0.html, provided
+//  that this copyright notice appear in all copies and that the name of Brown University not be used in
+//  advertising or publicity pertaining to the use or distribution of the software without specific written
 //  prior permission from Brown University.
-//  
+//
 //  See license.txt for further information.
-//  
-//  BROWN UNIVERSITY DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE WHICH IS 
-//  PROVIDED “AS IS”, INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS 
-//  FOR ANY PARTICULAR PURPOSE.  IN NO EVENT SHALL BROWN UNIVERSITY BE LIABLE FOR ANY 
-//  SPECIAL, INDIRECT OR CONSEQUENTIAL DAMAGES OR FOR ANY DAMAGES WHATSOEVER RESULTING 
-//  FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR 
-//  OTHER TORTIOUS ACTION, OR ANY OTHER LEGAL THEORY, ARISING OUT OF OR IN CONNECTION 
-//  WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. 
+//
+//  BROWN UNIVERSITY DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE WHICH IS
+//  PROVIDED “AS IS”, INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+//  FOR ANY PARTICULAR PURPOSE.  IN NO EVENT SHALL BROWN UNIVERSITY BE LIABLE FOR ANY
+//  SPECIAL, INDIRECT OR CONSEQUENTIAL DAMAGES OR FOR ANY DAMAGES WHATSOEVER RESULTING
+//  FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR
+//  OTHER TORTIOUS ACTION, OR ANY OTHER LEGAL THEORY, ARISING OUT OF OR IN CONNECTION
+//  WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 //  ----------------------------------
-//  
+//
 ///\file VRMenu.cpp
 ///\author Benjamin Knorlein
 ///\date 9/26/2019
@@ -67,8 +67,7 @@
 
 bool VRMenu::m_glew_initialised = false;
 
-VRMenu::VRMenu(int res_x, int res_y, float width, float height, ImFontAtlas* font_atlas, bool is2D, float font_scale) : m_res_x(res_x), m_res_y(res_y), m_width(width), m_height(height), m_font_atlas(font_atlas), m_fbo_initialised(false), m_imgui_initialised(false), m_grabbing_active(false), m_is2D(is2D)
-	, m_MSAA_buffers(4), m_font_scale(font_scale)
+VRMenu::VRMenu(int res_x, int res_y, float width, float height, ImFontAtlas *font_atlas, bool is2D, float font_scale) : m_res_x(res_x), m_res_y(res_y), m_width(width), m_height(height), m_font_atlas(font_atlas), m_fbo_initialised(false), m_imgui_initialised(false), m_grabbing_active(false), m_is2D(is2D), m_MSAA_buffers(4), m_font_scale(font_scale)
 {
 	if (m_height == 0)
 	{
@@ -80,21 +79,24 @@ VRMenu::VRMenu(int res_x, int res_y, float width, float height, ImFontAtlas* fon
 
 VRMenu::~VRMenu()
 {
-	if (!m_is2D) {
-		if (m_fbo_initialised) {
+	if (!m_is2D)
+	{
+		if (m_fbo_initialised)
+		{
 			glDeleteRenderbuffers(1, &m_nDepthBufferId);
-			if (m_MSAA_buffers > 1) glDeleteTextures(1, &m_nRenderTextureId);
+			if (m_MSAA_buffers > 1)
+				glDeleteTextures(1, &m_nRenderTextureId);
 			glDeleteFramebuffers(1, &m_nRenderFramebufferId);
 			glDeleteTextures(1, &m_nRenderTextureId);
-			if (m_MSAA_buffers > 1) glDeleteFramebuffers(1, &m_nResolveFramebufferId);
+			if (m_MSAA_buffers > 1)
+				glDeleteFramebuffers(1, &m_nResolveFramebufferId);
 		}
 	}
-	
+
 	if (m_imgui_initialised)
 	{
 		ImGui::DestroyContext(m_imgui_context);
 	}
-
 }
 
 void VRMenu::initFBO()
@@ -105,7 +107,8 @@ void VRMenu::initFBO()
 
 	glGenRenderbuffers(1, &m_nDepthBufferId);
 	glBindRenderbuffer(GL_RENDERBUFFER, m_nDepthBufferId);
-	if (m_MSAA_buffers > 1){
+	if (m_MSAA_buffers > 1)
+	{
 		glRenderbufferStorageMultisample(GL_RENDERBUFFER, 4, GL_DEPTH_COMPONENT, m_res_x, m_res_y);
 	}
 	else
@@ -114,7 +117,8 @@ void VRMenu::initFBO()
 	}
 	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, m_nDepthBufferId);
 
-	if (m_MSAA_buffers > 1){
+	if (m_MSAA_buffers > 1)
+	{
 		glGenTextures(1, &m_nRenderTextureId);
 		glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, m_nRenderTextureId);
 		glTexImage2DMultisample(GL_TEXTURE_2D_MULTISAMPLE, 4, GL_RGBA8, m_res_x, m_res_y, true);
@@ -132,8 +136,8 @@ void VRMenu::initFBO()
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, m_nRenderTextureId, 0);
 
 	// check FBO status
-	//GLenum status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
-	//if (status != GL_FRAMEBUFFER_COMPLETE)
+	// GLenum status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
+	// if (status != GL_FRAMEBUFFER_COMPLETE)
 	//{
 	//	return false;
 	//}
@@ -145,13 +149,14 @@ void VRMenu::initFBO()
 
 void VRMenu::initImgui()
 {
-	std::cerr << "Init imgui" << std::endl; 
+	std::cerr << "Init imgui" << std::endl;
 	IMGUI_CHECKVERSION();
-		
-	if (m_font_atlas) //shared font atlas
+
+	if (m_font_atlas) // shared font atlas
 		m_imgui_context = ImGui::CreateContext(m_font_atlas);
-	else{
-		// own font_atlas 
+	else
+	{
+		// own font_atlas
 		m_imgui_context = ImGui::CreateContext();
 	}
 
@@ -168,14 +173,14 @@ void VRMenu::initImgui()
 
 void VRMenu::renderToTexture()
 {
-	//init glew
+	// init glew
 	if (!m_glew_initialised)
 	{
 		std::cerr << "Init glew" << std::endl;
 
-		#ifndef __APPLE__
+#ifndef __APPLE__
 		glewInit();
-		#endif
+#endif
 		m_glew_initialised = true;
 	}
 
@@ -195,7 +200,8 @@ void VRMenu::renderToTexture()
 	glBindFramebuffer(GL_READ_FRAMEBUFFER, m_nRenderFramebufferId);
 	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, m_nRenderFramebufferId);
 	GLboolean last_enable_multisample = glIsEnabled(GL_MULTISAMPLE);
-	if (!last_enable_multisample && m_MSAA_buffers > 1) {
+	if (!last_enable_multisample && m_MSAA_buffers > 1)
+	{
 		glEnable(GL_MULTISAMPLE);
 	}
 
@@ -207,20 +213,22 @@ void VRMenu::renderToTexture()
 
 	ImGui::SetCurrentContext(m_imgui_context);
 	ImGuiIO &io = ImGui::GetIO();
-	io.DisplaySize = ImVec2((float) m_res_x, (float) m_res_y);
+	io.DisplaySize = ImVec2((float)m_res_x, (float)m_res_y);
 
-	//feed inputs to imgui
+	// feed inputs to imgui
 	ImGui_ImplOpenGL3_NewFrame();
 	newFrame();
-	ImGui::NewFrame(); //Here all the events are interpreted
+	ImGui::NewFrame(); // Here all the events are interpreted
 
-	//run Menu callback
+	// run Menu callback
 	m_callback();
-	
-	//we need to setup the root window for full scale and disable scaling here
-	//We search for the first window with no parentwindow and set the size and position as well as disable scalin
-	for (auto &window : m_imgui_context->Windows){
-		if (window->ParentWindow == NULL){
+
+	// we need to setup the root window for full scale and disable scaling here
+	// We search for the first window with no parentwindow and set the size and position as well as disable scalin
+	for (auto &window : m_imgui_context->Windows)
+	{
+		if (window->ParentWindow == NULL)
+		{
 			ImGui::SetWindowPos(window, ImVec2(0, 0));
 			ImGui::SetWindowSize(window, ImVec2(m_res_x, m_res_y));
 			window->Flags = window->Flags | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse;
@@ -228,18 +236,20 @@ void VRMenu::renderToTexture()
 	}
 
 	ImGui::Render();
-	//we need to setup the root window for full scale and disable scaling here
-	//We search for the first window with no parentwindow and set the size and position as well as disable scalin
+	// we need to setup the root window for full scale and disable scaling here
+	// We search for the first window with no parentwindow and set the size and position as well as disable scalin
 
 	ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
-	if (m_MSAA_buffers > 1) {
-		if (!last_enable_multisample) glDisable(GL_MULTISAMPLE);
+	if (m_MSAA_buffers > 1)
+	{
+		if (!last_enable_multisample)
+			glDisable(GL_MULTISAMPLE);
 		glBindFramebuffer(GL_READ_FRAMEBUFFER, m_nRenderFramebufferId);
 		glBindFramebuffer(GL_DRAW_FRAMEBUFFER, m_nResolveFramebufferId);
 		glBlitFramebuffer(0, 0, m_res_x, m_res_y, 0, 0, m_res_x, m_res_y,
-			GL_COLOR_BUFFER_BIT,
-			GL_LINEAR);
+						  GL_COLOR_BUFFER_BIT,
+						  GL_LINEAR);
 	}
 
 	////set back to previous FBO
@@ -254,10 +264,10 @@ void VRMenu::drawMenu()
 	glPushMatrix();
 	glMultMatrixf(glm::value_ptr(m_pose));
 
-	//glEnable(GL_BLEND);
-	//glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	// glEnable(GL_BLEND);
+	// glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	glEnable(GL_TEXTURE_2D);
-	glBindTexture(GL_TEXTURE_2D,m_nRenderTextureId);
+	glBindTexture(GL_TEXTURE_2D, m_nRenderTextureId);
 	glColor3f(1, 1, 1);
 	glBegin(GL_QUADS);
 	glTexCoord2f(0, 0);
@@ -270,9 +280,8 @@ void VRMenu::drawMenu()
 	glVertex3f(m_width / 2.0f, -m_height / 2.0f, 0.0f);
 	glEnd();
 
-	glBindTexture(GL_TEXTURE_2D,0);
+	glBindTexture(GL_TEXTURE_2D, 0);
 	glPopMatrix();
-
 }
 
 void VRMenu::setMenuPose(const glm::mat4 pose)
@@ -280,10 +289,10 @@ void VRMenu::setMenuPose(const glm::mat4 pose)
 	m_pose = pose;
 }
 
-ImGuiIO& VRMenu::getIO()
+ImGuiIO &VRMenu::getIO()
 {
 	ImGui::SetCurrentContext(m_imgui_context);
-	ImGuiIO& io = ImGui::GetIO();
+	ImGuiIO &io = ImGui::GetIO();
 	return io;
 }
 
@@ -293,7 +302,7 @@ float VRMenu::menu_controller_distance(const glm::mat4 &controllerpose, float ma
 	glm::vec4 dir = glm::inverse(m_pose) * controllerpose * glm::vec4(0, 0, -1, 0);
 
 	float distance = -pos.z / dir.z;
-	
+
 	if (distance >= max_distance)
 		return max_distance;
 
@@ -301,11 +310,10 @@ float VRMenu::menu_controller_distance(const glm::mat4 &controllerpose, float ma
 	m_interactionPoint.x = m_interactionPoint.x / m_width * m_res_x + (0.5f * m_res_x);
 	m_interactionPoint.y = -m_interactionPoint.y / m_height * m_res_y + (0.5f * m_res_y);
 
-	if (m_interactionPoint.x > 0 && m_interactionPoint.y > 0
-		&& m_interactionPoint.x < m_res_x && m_interactionPoint.y < m_res_y)
+	if (m_interactionPoint.x > 0 && m_interactionPoint.y > 0 && m_interactionPoint.x < m_res_x && m_interactionPoint.y < m_res_y)
 	{
 		return distance;
-	} 
+	}
 	else
 	{
 		return max_distance;
@@ -317,14 +325,16 @@ void VRMenu::setControllerPose(const glm::mat4 &controllerpose)
 	if (!m_imgui_initialised)
 		return;
 
-	if (m_imgui_context->MovingWindow != NULL &&  m_imgui_context->MovingWindow->ParentWindow == NULL &&
+	if (m_imgui_context->MovingWindow != NULL && m_imgui_context->MovingWindow->ParentWindow == NULL &&
 		std::string(m_imgui_context->MovingWindow->Name) != std::string("Debug##Default"))
 	{
-		if (!m_grabbing_active){
+		if (!m_grabbing_active)
+		{
 			m_pose_grab_relative = glm::inverse(m_pose_grab_relative) * m_pose;
 			m_grabbing_active = true;
 		}
-	} else
+	}
+	else
 	{
 		m_grabbing_active = false;
 	}
@@ -332,7 +342,7 @@ void VRMenu::setControllerPose(const glm::mat4 &controllerpose)
 	/*for (auto &window : m_imgui_context->Windows){
 		if (window->ParentWindow == NULL && std::string(window->Name) != std::string("Debug##Default")){
 			ImGuiWindow * movingParent = m_imgui_context->MovingWindow;
-			
+
 			if (!m_grabbing_active && movingParent == window){
 				m_pose_grab_relative = glm::inverse(m_pose_grab_relative) * m_pose;
 				m_grabbing_active = true;
@@ -344,17 +354,18 @@ void VRMenu::setControllerPose(const glm::mat4 &controllerpose)
 		}
 	}*/
 
-	if (!m_grabbing_active){
+	if (!m_grabbing_active)
+	{
 		m_pose_grab_relative = controllerpose;
 	}
-	else 
+	else
 	{
 		m_pose = controllerpose * m_pose_grab_relative;
 		return;
 	}
 
 	ImGui::SetCurrentContext(m_imgui_context);
-	ImGuiIO& io = ImGui::GetIO();
+	ImGuiIO &io = ImGui::GetIO();
 
 	glm::vec4 pos = glm::inverse(m_pose) * controllerpose * glm::vec4(0, 0, 0, 1);
 	glm::vec4 dir = glm::inverse(m_pose) * controllerpose * glm::vec4(0, 0, -1, 0);
@@ -366,30 +377,32 @@ void VRMenu::setControllerPose(const glm::mat4 &controllerpose)
 	m_interactionPoint.y = -m_interactionPoint.y / m_height * m_res_y + (0.5f * m_res_y);
 
 	io.MousePos = ImVec2(m_interactionPoint.x, m_interactionPoint.y);
-	if (io.MousePos.x > 0 && io.MousePos.y > 0
-		&& io.MousePos.x < m_res_x && io.MousePos.y < m_res_y)
+	if (io.MousePos.x > 0 && io.MousePos.y > 0 && io.MousePos.x < m_res_x && io.MousePos.y < m_res_y)
 	{
 		io.MouseDrawCursor = true;
-	} 
+	}
 	else
 	{
 		io.MouseDrawCursor = false;
 	}
 }
 
-void VRMenu::setButtonClick(int button, int state){
+void VRMenu::setButtonClick(int button, int state)
+{
 	if (!m_imgui_initialised)
 		return;
-	
+
 	if (button > 5)
 		return;
 
 	ImGui::SetCurrentContext(m_imgui_context);
-	ImGuiIO& io = ImGui::GetIO();
-	if (state == 1){
+	ImGuiIO &io = ImGui::GetIO();
+	if (state == 1)
+	{
 		io.MouseDown[button] = true;
 	}
-	else{
+	else
+	{
 		io.MouseDown[button] = false;
 	}
 }
@@ -400,8 +413,8 @@ void VRMenu::setAnalogValue(float value)
 		return;
 
 	ImGui::SetCurrentContext(m_imgui_context);
-	ImGuiIO& io = ImGui::GetIO();
-	io.MouseWheel += value*0.1;
+	ImGuiIO &io = ImGui::GetIO();
+	io.MouseWheel += value * 0.1;
 }
 
 void VRMenu::set_callback(std::function<void()> callback)
@@ -409,7 +422,7 @@ void VRMenu::set_callback(std::function<void()> callback)
 	m_callback = callback;
 }
 
-void  VRMenu::call_callback()
+void VRMenu::call_callback()
 {
 	m_callback();
 }
@@ -418,10 +431,10 @@ void VRMenu::newFrame(bool setContext)
 {
 	std::chrono::steady_clock::time_point nowTime = std::chrono::steady_clock::now();
 	std::chrono::duration<double> time_span = std::chrono::duration<double>(nowTime - m_lastTime);
-	
-	if(setContext)
+
+	if (setContext)
 		ImGui::SetCurrentContext(m_imgui_context);
-	ImGuiIO& io = ImGui::GetIO();
+	ImGuiIO &io = ImGui::GetIO();
 	float delta_time = std::chrono::duration_cast<std::chrono::milliseconds>(time_span).count() / 1000.0f;
 	if (delta_time <= 0)
 		delta_time = 1;
