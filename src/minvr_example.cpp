@@ -275,7 +275,15 @@ public:
 		int framebuffer_w = renderState.index().getValue("FramebufferWidth");
 		int framebuffer_h = renderState.index().getValue("FramebufferHeight");
 
-		menus->drawMenu(projectionMatrix, viewMatrix, window_w, window_h, framebuffer_w, framebuffer_h);
+		if (m_is2d)
+		{
+			menus->drawMenu2D( window_w, window_h, framebuffer_w, framebuffer_h);
+		}
+		else
+		{
+			menus->drawMenu3D(projectionMatrix, viewMatrix);
+		}
+		
 
 		
 	}
