@@ -186,35 +186,35 @@ void VRMenuHandler::renderToTexture()
 	}
 }
 
-void VRMenuHandler::drawMenu(const glm::mat4& projectionMatrix, const glm::mat4& viewMatrix,int window_width, int window_height, int framebuffer_width, int framebuffer_height)
+void VRMenuHandler::drawMenu3D(const glm::mat4& projectionMatrix, const glm::mat4& viewMatrix)
 {
-	if (!m_is2D) {
-		//draw menus
-		glUseProgram(shaderProgram);
-		GLint loc = glGetUniformLocation(shaderProgram, "ProjectionMatrix");
-		glUniformMatrix4fv(loc, 1, GL_FALSE, glm::value_ptr(projectionMatrix));
-		loc = glGetUniformLocation(shaderProgram, "ViewMatrix");
-		glUniformMatrix4fv(loc, 1, GL_FALSE, glm::value_ptr(viewMatrix));
-		loc = glGetUniformLocation(shaderProgram, "ModelMatrix");
+	if (m_menus.empty())
+		return;
 
-		for (auto menu : m_menus)
-		{
+	glUseProgram(shaderProgram);
+	GLint loc = glGetUniformLocation(shaderProgram, "ProjectionMatrix");
+	glUniformMatrix4fv(loc, 1, GL_FALSE, glm::value_ptr(projectionMatrix));
+	loc = glGetUniformLocation(shaderProgram, "ViewMatrix");
+	glUniformMatrix4fv(loc, 1, GL_FALSE, glm::value_ptr(viewMatrix));
+	loc = glGetUniformLocation(shaderProgram, "ModelMatrix");
 
-			glUniformMatrix4fv(loc, 1, GL_FALSE, glm::value_ptr(menu->getMenuPose()));
-			GLint textureLoc = glGetUniformLocation(shaderProgram, "R_Texture");
-			glUniform1i(textureLoc, 0);
-			glActiveTexture(GL_TEXTURE0);
-			glBindTexture(GL_TEXTURE_2D, menu->getTextureId());
-			glBindVertexArray(VAO);
-			glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
-			
+	for (auto menu : m_menus)
+	{
 
-		}
-
-		//// reset program
-		glUseProgram(0);
+		glUniformMatrix4fv(loc, 1, GL_FALSE, glm::value_ptr(menu->getMenuPose()));
+		GLint textureLoc = glGetUniformLocation(shaderProgram, "R_Texture");
+		glUniform1i(textureLoc, 0);
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, menu->getTextureId());
+		glBindVertexArray(VAO);
+		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 	}
-	else if (!m_menus.empty())
+	glUseProgram(0);
+}
+
+void VRMenuHandler::drawMenu2D(int window_width, int window_height, int framebuffer_width, int framebuffer_height)
+{
+	if (!m_menus.empty())
 	{
 		if (!VRMenu::m_glew_initialised)
 		{

@@ -43,7 +43,8 @@ public:
 
 	// render
 	void renderToTexture();
-	void drawMenu(const glm::mat4& projectionMatrix, const glm::mat4& viewMatrix,int window_width, int window_height, int framebuffer_width, int framebuffer_height);
+	void drawMenu2D(int window_width, int window_height, int framebuffer_width, int framebuffer_height);
+	void drawMenu3D(const glm::mat4& projectionMatrix, const glm::mat4& viewMatrix);
 
 	// interaction
 	void setControllerPose(const glm::mat4 &controllerpose, float max_distance = std::numeric_limits<float>::max());
