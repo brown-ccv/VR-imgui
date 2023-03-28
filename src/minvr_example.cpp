@@ -6,6 +6,14 @@
 //#include <imfilebrowser.h>
 #include "ImGuiFileBrowser.h"
 
+#ifdef _WIN32
+#include "GL/glew.h"
+#include "GL/wglew.h"
+#elif (!defined(__APPLE__))
+#include "GL/glxew.h"
+#endif
+
+
 // OpenGL platform-specific headers
 #ifdef _MSC_VER
 #define NOMINMAX
@@ -117,7 +125,7 @@ public:
 		menus->addNewMenu(std::bind(&MyVRApp::menu_callback, this), 1024, 1024, 1, 1);
 
 		VRMenu *menu = menus->addNewMenu(std::bind(&MyVRApp::menu_callback2, this), 1024, 1024, 1, 1);
-		menu->setMenuPose(glm::mat4(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 2, 2, 0, 1));
+		menu->setMenuPose(glm::mat4(1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, -2.0f, 1.0f));
 	}
 
 	virtual ~MyVRApp()
@@ -229,6 +237,24 @@ public:
 
 	virtual void onRenderGraphicsContext(const VRGraphicsState &renderState)
 	{
+		if (renderState.isInitialRenderCall()) {
+#ifndef __APPLE__
+			glewExperimental = GL_TRUE;
+			GLenum err = glewInit();
+			if (GLEW_OK != err)
+			{
+				std::cout << "Error initializing GLEW." << std::endl;
+			}
+#endif
+			// Init GL
+			glEnable(GL_DEPTH_TEST);
+			glClearDepth(1.0f);
+			glDepthFunc(GL_LEQUAL);
+			glClearColor(0, 0, 0, 1);
+
+
+			menus->initGL();
+		}
 		menus->renderToTexture();
 	}
 
@@ -237,29 +263,21 @@ public:
 
 		glClearColor(0.0, 0.0, 0.0, 1.0);
 
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
-		glEnable(GL_NORMALIZE);
-		glEnable(GL_DEPTH_TEST);
-		glEnable(GL_COLOR_MATERIAL);
-
-		glEnable(GL_LIGHTING);
-		glEnable(GL_LIGHT0);
-
-		glMatrixMode(GL_PROJECTION);
-		glLoadMatrixf(renderState.getProjectionMatrix());
-
-		glMatrixMode(GL_MODELVIEW);
-		glLoadMatrixf(renderState.getViewMatrix());
+		glm::mat4 projectionMatrix = glm::make_mat4(renderState.getProjectionMatrix());
+		glm::mat4 viewMatrix = glm::make_mat4(renderState.getViewMatrix());
+		
+		
 
 		int window_w = renderState.index().getValue("WindowWidth");
 		int window_h = renderState.index().getValue("WindowHeight");
 		int framebuffer_w = renderState.index().getValue("FramebufferWidth");
 		int framebuffer_h = renderState.index().getValue("FramebufferHeight");
 
-		menus->drawMenu(window_w, window_h, framebuffer_w, framebuffer_h);
+		menus->drawMenu(projectionMatrix, viewMatrix, window_w, window_h, framebuffer_w, framebuffer_h);
 
-		glFlush();
+		
 	}
 
 protected:

@@ -53,6 +53,8 @@ public:
 	void set_callback(std::function<void()> callback);
 	void call_callback();
 	void setMenuPose(const glm::mat4 pose);
+	glm::mat4& getMenuPose();
+
 	ImGuiIO &getIO();
 	bool isGrabbed()
 	{
@@ -60,6 +62,10 @@ public:
 	};
 	void newFrame(bool setContext = true);
 	static bool m_glew_initialised;
+
+	unsigned int getTextureId() {
+		return m_nRenderTextureId;
+	};
 
 private:
 	// render resolution
