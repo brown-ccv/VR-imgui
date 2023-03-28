@@ -43,13 +43,14 @@ public:
 
 	// render
 	void renderToTexture();
-	void drawMenu(int window_width, int window_height, int framebuffer_width, int framebuffer_height);
+	void drawMenu(const glm::mat4& projectionMatrix, const glm::mat4& viewMatrix,int window_width, int window_height, int framebuffer_width, int framebuffer_height);
 
 	// interaction
 	void setControllerPose(const glm::mat4 &controllerpose, float max_distance = std::numeric_limits<float>::max());
 	void setButtonClick(int button, int state);
 	void setAnalogValue(float value);
 	void setCursorPos(float x, float y);
+	void initGL();
 
 	bool windowIsActive()
 	{
@@ -68,6 +69,9 @@ private:
 	bool m_imgui2D_initialised;
 	bool m_isHover;
 	float m_font_scale;
+
+	unsigned int  vshader, fshader, shaderProgram;
+	unsigned int VBO, VAO, EBO;
 };
 
 #endif // VRMENUHANDLER_H

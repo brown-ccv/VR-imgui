@@ -40,6 +40,39 @@
 #include "imgui.h"
 
 #include <iostream>
+#include <glm/gtc/type_ptr.hpp>
+
+GLuint compileShader(const std::string& shaderText, GLuint shaderType) {
+	const char* source = shaderText.c_str();
+	int length = (int)shaderText.size();
+	GLuint shader = glCreateShader(shaderType);
+	glShaderSource(shader, 1, &source, &length);
+	glCompileShader(shader);
+	GLint status;
+	glGetShaderiv(shader, GL_COMPILE_STATUS, &status);
+	if (status == GL_FALSE) {
+		GLint length;
+		glGetShaderiv(shader, GL_INFO_LOG_LENGTH, &length);
+		std::vector<char> log(length);
+		glGetShaderInfoLog(shader, length, &length, &log[0]);
+		std::cerr << &log[0];
+	}
+
+	return shader;
+}
+
+void linkShaderProgram(GLuint shaderProgram) {
+	glLinkProgram(shaderProgram);
+	GLint status;
+	glGetProgramiv(shaderProgram, GL_LINK_STATUS, &status);
+	if (status == GL_FALSE) {
+		GLint length;
+		glGetProgramiv(shaderProgram, GL_INFO_LOG_LENGTH, &length);
+		std::vector<char> log(length);
+		glGetProgramInfoLog(shaderProgram, length, &length, &log[0]);
+		std::cerr << "Error compiling program: " << &log[0] << std::endl;
+	}
+}
 
 VRMenuHandler::VRMenuHandler(bool is2D) :m_active_menu(NULL), m_is2D(is2D), m_imgui2D_initialised(false), m_isHover(false), m_font_scale{ 1.0f }
 {
@@ -71,6 +104,78 @@ VRMenuHandler::~VRMenuHandler()
 
 }
 
+void VRMenuHandler::initGL()
+{
+	std::cerr << "Init vba" << std::endl;
+	float quadVertices[] = {
+		// positions   // texCoords
+		  0.5f,  0.5f, 0.0f,   1.0f, 1.0f,  // top right
+		  0.5f, -0.5f, 0.0f,   1.0f, 0.0f, // bottom right
+		  -0.5f, -0.5f, 0.0f,  0.0f, 0.0f,  // bottom left
+		  -0.5f,  0.5f, 0.0f,  0.0f, 1.0f // top left 
+	};
+
+	unsigned int indices[] = {
+			   0, 3, 2, // first triangle
+			   1, 0, 2  // second triangle
+	};
+
+	glGenVertexArrays(1, &VAO);
+	glGenBuffers(1, &VBO);
+	glGenBuffers(1, &EBO);
+
+	glBindVertexArray(VAO);
+
+	glBindBuffer(GL_ARRAY_BUFFER, VBO);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(quadVertices), quadVertices, GL_STATIC_DRAW);
+
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
+
+	// position attribute
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
+	glEnableVertexAttribArray(0);
+	// texture coord attribute
+	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
+	glEnableVertexAttribArray(1);
+
+
+	glBindVertexArray(0);
+
+	// Create shader
+	std::string vertexShader =
+		"#version 330 \n"
+		"layout(location = 0) in vec3 position; "
+		"layout(location = 1) in vec2 texture; "
+		"uniform mat4 ProjectionMatrix; "
+		"uniform mat4 ViewMatrix; "
+		"uniform mat4 ModelMatrix; "
+		"out vec2 text_coord;"
+		"void main() { "
+		"	gl_Position = ProjectionMatrix*ViewMatrix*ModelMatrix*vec4(position, 1.0); "
+		"   text_coord = texture; "
+		"}";
+	vshader = compileShader(vertexShader, GL_VERTEX_SHADER);
+
+	std::string fragmentShader =
+		"#version 330 \n"
+		"uniform sampler2D R_Texture;  "
+		"in vec2 text_coord;"
+		"out vec4 colorOut;"
+		""
+		"void main() { "
+		" colorOut =  texture(R_Texture, text_coord); "
+		//" colorOut =  vec4(1.0,0.0,0.0,1.0); "
+		"}";
+	fshader = compileShader(fragmentShader, GL_FRAGMENT_SHADER);
+
+	// Create shader program
+	shaderProgram = glCreateProgram();
+	glAttachShader(shaderProgram, vshader);
+	glAttachShader(shaderProgram, fshader);
+	linkShaderProgram(shaderProgram);
+}
+
 void VRMenuHandler::renderToTexture()
 {
 
@@ -81,12 +186,33 @@ void VRMenuHandler::renderToTexture()
 	}
 }
 
-void VRMenuHandler::drawMenu(int window_width, int window_height, int framebuffer_width, int framebuffer_height)
+void VRMenuHandler::drawMenu(const glm::mat4& projectionMatrix, const glm::mat4& viewMatrix,int window_width, int window_height, int framebuffer_width, int framebuffer_height)
 {
 	if (!m_is2D) {
 		//draw menus
-		for (auto& menu : m_menus)
-			menu->drawMenu();
+		glUseProgram(shaderProgram);
+		GLint loc = glGetUniformLocation(shaderProgram, "ProjectionMatrix");
+		glUniformMatrix4fv(loc, 1, GL_FALSE, glm::value_ptr(projectionMatrix));
+		loc = glGetUniformLocation(shaderProgram, "ViewMatrix");
+		glUniformMatrix4fv(loc, 1, GL_FALSE, glm::value_ptr(viewMatrix));
+		loc = glGetUniformLocation(shaderProgram, "ModelMatrix");
+
+		for (auto menu : m_menus)
+		{
+
+			glUniformMatrix4fv(loc, 1, GL_FALSE, glm::value_ptr(menu->getMenuPose()));
+			GLint textureLoc = glGetUniformLocation(shaderProgram, "R_Texture");
+			glUniform1i(textureLoc, 0);
+			glActiveTexture(GL_TEXTURE0);
+			glBindTexture(GL_TEXTURE_2D, menu->getTextureId());
+			glBindVertexArray(VAO);
+			glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+			
+
+		}
+
+		//// reset program
+		glUseProgram(0);
 	}
 	else if (!m_menus.empty())
 	{

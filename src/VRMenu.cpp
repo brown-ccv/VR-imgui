@@ -289,6 +289,11 @@ void VRMenu::setMenuPose(const glm::mat4 pose)
 	m_pose = pose;
 }
 
+glm::mat4& VRMenu::getMenuPose()
+{
+	return m_pose;
+}
+
 ImGuiIO &VRMenu::getIO()
 {
 	ImGui::SetCurrentContext(m_imgui_context);
